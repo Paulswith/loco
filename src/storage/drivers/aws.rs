@@ -3,6 +3,8 @@ use opendal::{services::S3, Operator};
 use super::{opendal_adapter::OpendalAdapter, StoreDriver};
 use crate::storage::StorageResult;
 
+pub type S3Config = S3;
+
 /// A set of AWS security credentials
 #[derive(Debug)]
 pub struct Credential {
@@ -60,6 +62,27 @@ pub fn with_credentials(
     if let Some(token) = credentials.token {
         s3 = s3.session_token(&token);
     }
+    Ok(Box::new(OpendalAdapter::new(Operator::new(s3)?.finish())))
+}
+
+/// Create new AWS s3 storage with custom s3 config
+///
+/// # Examples
+///```
+/// use loco_rs::storage::drivers::aws;
+/// let s3_config = aws::S3Config::default()
+///     .bucket(bucket_name)
+///     .region("".to_string())
+///     .access_key_id("".to_string())
+///     .secret_access_key("".to_string());
+///     .endpoint("".to_string());
+/// let aws_driver = aws::with_custom_s3(s3);
+/// ```
+///
+/// # Errors
+///
+/// When could not initialize the client instance
+pub fn with_custom_s3(s3: S3Config) -> StorageResult<Box<dyn StoreDriver>> {
     Ok(Box::new(OpendalAdapter::new(Operator::new(s3)?.finish())))
 }
 
